@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Algo-based Trading project: design, statistical validation and live deployment of an algorithmic trading system for NIFTY index options.">
+<meta name="author" content="Kunj Patel">
+<title>Algorithmic Options Trading System — Final Year Project</title>
+<style>
+    /* --- minimal reset (normally supplied by the artifact host) --- */
+    *,*::before,*::after{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{margin:0}
+    img,svg{max-width:100%}
+    table{border-collapse:collapse}
+
+  :root{
+    --paper:#FBFBFC; --card:#FFFFFF; --sunk:#F4F6F8;
+    --ink:#0F141A; --ink2:#414A56; --ink3:#6B7480;
+    --rule:#E3E7EC; --rule2:#EFF2F5;
+    --accent:#0E7C86; --accent-soft:#0E7C8614; --accent-line:#0E7C8640;
+    --warn:#A85B10; --warn-soft:#A85B1014;
+    --good:#15803D; --bad:#B3261E;
+    --shadow:0 1px 2px rgba(15,20,26,.04), 0 10px 30px -18px rgba(15,20,26,.22);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0A0E13; --card:#131A22; --sunk:#0F151C;
+      --ink:#E7ECF2; --ink2:#A8B2BE; --ink3:#77828F;
+      --rule:#212A35; --rule2:#19212A;
+      --accent:#45C7D4; --accent-soft:#45C7D41C; --accent-line:#45C7D44D;
+      --warn:#E9A448; --warn-soft:#E9A4481C;
+      --good:#4ADE80; --bad:#F08076;
+      --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -18px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0A0E13; --card:#131A22; --sunk:#0F151C;
+    --ink:#E7ECF2; --ink2:#A8B2BE; --ink3:#77828F;
+    --rule:#212A35; --rule2:#19212A;
+    --accent:#45C7D4; --accent-soft:#45C7D41C; --accent-line:#45C7D44D;
+    --warn:#E9A448; --warn-soft:#E9A4481C;
+    --good:#4ADE80; --bad:#F08076;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --paper:#FBFBFC; --card:#FFFFFF; --sunk:#F4F6F8;
+    --ink:#0F141A; --ink2:#414A56; --ink3:#6B7480;
+    --rule:#E3E7EC; --rule2:#EFF2F5;
+    --accent:#0E7C86; --accent-soft:#0E7C8614; --accent-line:#0E7C8640;
+    --warn:#A85B10; --warn-soft:#A85B1014;
+    --good:#15803D; --bad:#B3261E;
+    --shadow:0 1px 2px rgba(15,20,26,.04), 0 10px 30px -18px rgba(15,20,26,.22);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:system-ui,"Segoe UI",-apple-system,sans-serif;
+    font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .mono,code,.num{font-family:"Cascadia Mono",Consolas,ui-monospace,"SF Mono",monospace;
+    font-variant-numeric:tabular-nums}
+
+  /* ---------------- shell ---------------- */
+  .shell{max-width:1240px; margin:0 auto; padding:0 24px; display:grid;
+    grid-template-columns:212px minmax(0,1fr); gap:52px; align-items:start}
+  @media (max-width:940px){ .shell{grid-template-columns:1fr; gap:0} nav.toc{display:none} }
+
+  nav.toc{position:sticky; top:0; padding:40px 0; max-height:100vh; overflow-y:auto}
+  nav.toc .lbl{font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink3); font-weight:700; margin-bottom:14px;
+    font-family:"Cascadia Mono",Consolas,monospace}
+  nav.toc a{display:block; padding:5px 0 5px 12px; font-size:13px; color:var(--ink2);
+    text-decoration:none; border-left:2px solid var(--rule); line-height:1.4}
+  nav.toc a:hover{color:var(--accent); border-left-color:var(--accent)}
+  nav.toc a:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  nav.toc a i{font-style:normal; color:var(--ink3); margin-right:7px;
+    font-family:"Cascadia Mono",Consolas,monospace; font-size:11px}
+
+  main{padding:40px 0 100px; min-width:0}
+
+  /* ---------------- masthead ---------------- */
+  .kicker{font-family:"Cascadia Mono",Consolas,monospace; font-size:11px;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:clamp(29px,4.4vw,44px); line-height:1.12; letter-spacing:-.02em;
+    font-weight:680; margin:16px 0 0; text-wrap:balance; max-width:20ch}
+  .sub{font-family:Georgia,"Iowan Old Style",serif; font-size:18.5px; color:var(--ink2);
+    margin:18px 0 0; max-width:60ch; line-height:1.6}
+  .byline{margin-top:26px; padding:16px 0; border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule); display:flex; flex-wrap:wrap; gap:6px 32px;
+    font-size:12.5px; color:var(--ink3)}
+  .byline b{color:var(--ink); font-weight:600; display:block;
+    font-family:"Cascadia Mono",Consolas,monospace; font-size:13px; margin-top:2px}
+
+  /* ---------------- hero chart ---------------- */
+  figure{margin:0}
+  .chart{margin:34px 0 0; padding:22px 22px 14px; background:var(--card);
+    border:1px solid var(--rule); border-radius:4px; box-shadow:var(--shadow)}
+  .chart .hd{display:flex; justify-content:space-between; align-items:baseline;
+    flex-wrap:wrap; gap:8px; margin-bottom:16px}
+  .chart .hd h3{margin:0; font-size:13px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink3); font-weight:700; font-family:"Cascadia Mono",Consolas,monospace}
+  .chart .hd .v{font-family:"Cascadia Mono",Consolas,monospace; font-size:22px;
+    font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums}
+  .chart svg{display:block; width:100%; height:auto}
+  .axis{display:flex; justify-content:space-between; margin-top:8px;
+    font-family:"Cascadia Mono",Consolas,monospace; font-size:11px; color:var(--ink3)}
+  figcaption{font-size:12.5px; color:var(--ink3); margin-top:12px; line-height:1.55}
+
+  /* ---------------- stat strip ---------------- */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:1px;
+    background:var(--rule); border:1px solid var(--rule); border-radius:4px;
+    overflow:hidden; margin:26px 0 0}
+  .stat{background:var(--card); padding:16px 14px}
+  .stat .k{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3);
+    font-weight:700; font-family:"Cascadia Mono",Consolas,monospace}
+  .stat .v{font-family:"Cascadia Mono",Consolas,monospace; font-size:23px; font-weight:700;
+    margin-top:7px; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .stat .n{font-size:11.5px; color:var(--ink3); margin-top:3px}
+
+  /* ---------------- sections ---------------- */
+  section{margin-top:64px; scroll-margin-top:24px}
+  h2{font-size:24px; font-weight:680; letter-spacing:-.015em; margin:0 0 6px;
+    padding-bottom:12px; border-bottom:2px solid var(--ink); display:flex;
+    align-items:baseline; gap:14px}
+  h2 .no{font-family:"Cascadia Mono",Consolas,monospace; font-size:12px; color:var(--accent);
+    font-weight:700; letter-spacing:.08em}
+  h3{font-size:16.5px; font-weight:650; margin:34px 0 8px; letter-spacing:-.01em}
+  h4{font-size:13px; font-weight:700; margin:24px 0 6px; color:var(--ink2);
+    font-family:"Cascadia Mono",Consolas,monospace; letter-spacing:.05em; text-transform:uppercase}
+  p{margin:12px 0; max-width:68ch}
+  .lede{font-family:Georgia,serif; font-size:17px; color:var(--ink2); max-width:64ch}
+  ul,ol{max-width:66ch; padding-left:22px; color:var(--ink2)}
+  li{margin:8px 0}
+  li strong,p strong{color:var(--ink); font-weight:650}
+  a{color:var(--accent)}
+
+  /* ---------------- callouts ---------------- */
+  .note{margin:24px 0; padding:18px 22px; border-radius:4px; background:var(--accent-soft);
+    border-left:3px solid var(--accent)}
+  .note.warn{background:var(--warn-soft); border-left-color:var(--warn)}
+  .note .t{font-family:"Cascadia Mono",Consolas,monospace; font-size:11px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:8px}
+  .note.warn .t{color:var(--warn)}
+  .note p{margin:6px 0; font-size:15px}
+  .note p:first-of-type{margin-top:0}
+
+  /* ---------------- code ---------------- */
+  pre{margin:18px 0; padding:16px 18px; background:var(--sunk); border:1px solid var(--rule);
+    border-radius:4px; overflow-x:auto; font-size:12.8px; line-height:1.7}
+  pre code{color:var(--ink2)}
+  .cm{color:var(--ink3); font-style:italic}
+  .kw{color:var(--accent); font-weight:600}
+  code:not(pre code){background:var(--sunk); border:1px solid var(--rule); border-radius:3px;
+    padding:1px 5px; font-size:13px}
+
+  /* ---------------- tables ---------------- */
+  .scroll{overflow-x:auto; margin:20px 0; border:1px solid var(--rule); border-radius:4px;
+    background:var(--card)}
+  table{border-collapse:collapse; width:100%; font-size:13.2px; min-width:520px}
+  th,td{padding:9px 13px; text-align:right; white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3);
+    font-weight:700; background:var(--sunk); border-bottom:1px solid var(--rule);
+    font-family:"Cascadia Mono",Consolas,monospace}
+  tbody tr{border-top:1px solid var(--rule2)}
+  tbody tr:first-child{border-top:none}
+  td.num,td.n{font-family:"Cascadia Mono",Consolas,monospace; font-variant-numeric:tabular-nums}
+  tr.hl{background:var(--accent-soft)}
+  .pos{color:var(--good); font-weight:650} .neg{color:var(--bad); font-weight:650}
+  caption{caption-side:bottom; text-align:left; padding:10px 13px; font-size:12px;
+    color:var(--ink3); border-top:1px solid var(--rule); line-height:1.5}
+
+  /* ---------------- architecture diagram ---------------- */
+  .arch{margin:24px 0; padding:24px 20px; background:var(--card); border:1px solid var(--rule);
+    border-radius:4px; box-shadow:var(--shadow)}
+  .tier{margin-bottom:8px}
+  .tier .tl{font-family:"Cascadia Mono",Consolas,monospace; font-size:10px; font-weight:700;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--ink3); margin-bottom:8px}
+  .boxes{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+  .box{padding:12px 14px; border:1px solid var(--rule); border-radius:3px; background:var(--sunk)}
+  .box.hi{border-color:var(--accent); background:var(--accent-soft)}
+  .box .bt{font-size:13.5px; font-weight:650; line-height:1.3}
+  .box .bd{font-size:11.5px; color:var(--ink3); margin-top:4px; line-height:1.45;
+    font-family:"Cascadia Mono",Consolas,monospace}
+  .flow{text-align:center; color:var(--accent); font-size:15px; line-height:1; margin:2px 0 10px}
+
+  /* ---------------- misc ---------------- */
+  .grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:16px; margin:22px 0}
+  .card{padding:18px 20px; background:var(--card); border:1px solid var(--rule);
+    border-radius:4px; box-shadow:var(--shadow)}
+  .card h4{margin-top:0}
+  .card p{font-size:14px; margin:8px 0 0}
+  .pill{display:inline-block; padding:2px 8px; border-radius:3px; font-size:10.5px;
+    font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    font-family:"Cascadia Mono",Consolas,monospace}
+  .pill.ok{background:var(--accent-soft); color:var(--accent)}
+  .pill.no{background:var(--warn-soft); color:var(--warn)}
+  hr{border:0; border-top:1px solid var(--rule); margin:44px 0}
+  footer{margin-top:72px; padding-top:22px; border-top:2px solid var(--ink); font-size:12.5px;
+    color:var(--ink3); max-width:74ch}
+  footer b{color:var(--ink2)}
+
+    /* --- print / PDF export --- */
+    @media print{
+      nav.toc{display:none!important}
+      .shell{display:block!important;max-width:none!important;padding:0!important}
+      h2{break-after:avoid}
+      .scroll,.card,.chart,.arch,figure{break-inside:avoid}
+      a{color:inherit;text-decoration:none}
+    }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc">
+  <div class="lbl">Contents</div>
+  <a href="#abstract"><i>01</i>Abstract</a>
+  <a href="#intro"><i>02</i>Problem &amp; Motivation</a>
+  <a href="#arch"><i>03</i>System Architecture</a>
+  <a href="#data"><i>04</i>Data Pipeline</a>
+  <a href="#signal"><i>05</i>Signal Generation</a>
+  <a href="#strategy"><i>06</i>Strategy &amp; Filters</a>
+  <a href="#options"><i>07</i>Option Pricing</a>
+  <a href="#exec"><i>08</i>Order Execution</a>
+  <a href="#backtest"><i>09</i>Backtesting Method</a>
+  <a href="#results"><i>10</i>Results</a>
+  <a href="#study"><i>11</i>Execution Study</a>
+  <a href="#eng"><i>12</i>Engineering Problems</a>
+  <a href="#integrity"><i>13</i>A Withdrawn Result</a>
+  <a href="#stack"><i>14</i>Technology Stack</a>
+  <a href="#limits"><i>15</i>Limitations</a>
+  <a href="#future"><i>16</i>Future Work</a>
+  <a href="#conclusion"><i>17</i>Conclusion</a>
+</nav>
+
+<main>
+
+  <div class="kicker"> Project · Computer Science</div>
+  <h1>An Algorithmic Trading System for NIFTY Index Options</h1>
+  <p class="sub">
+    Design, statistical validation and live production deployment of an automated
+    derivatives trading system — from market-data ingestion and signal generation through
+    option pricing, order execution and fault-tolerant operation on a cloud host.
+  </p>
+
+  <div class="byline">
+    <span>Author<b>Kunj Patel</b></span>
+    <span>Programme<b>Btech Computer Science</b></span>
+    <span>Submitted<b>2026</b></span>
+    <span>Status<b>Deployed &amp; operating live</b></span>
+  </div>
+
+  <figure class="chart">
+    <div class="hd">
+      <h3>Cumulative strategy return — 30-minute engine</h3>
+      <div class="v">+40,740 index points</div>
+    </div>
+    <svg viewBox="0 0 1000 240" preserveAspectRatio="none" role="img"
+         aria-label="Equity curve rising from zero to about 40,740 index points between 2020 and 2026">
+      <defs>
+        <linearGradient id="eqf" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity=".22"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="229.9" x2="1000" y2="229.9" stroke="var(--rule)" stroke-width="1"/>
+      <polygon fill="url(#eqf)" points="0,240 0.0,229.9 10.9,230.6 21.7,230.9 32.6,232.0 43.5,228.7 54.3,229.0 65.2,227.8 76.1,229.2 87.0,229.7 97.8,225.6 108.7,224.8 119.6,223.6 130.4,218.2 141.3,217.1 152.2,213.2 163.0,214.9 173.9,213.3 184.8,205.6 195.7,201.3 206.5,200.4 217.4,192.9 228.3,187.7 239.1,186.0 250.0,183.6 260.9,180.8 271.7,178.8 282.6,180.4 293.5,176.6 304.3,167.5 315.2,166.8 326.1,165.0 337.0,160.3 347.8,161.2 358.7,158.7 369.6,146.3 380.4,149.3 391.3,147.0 402.2,144.2 413.0,142.4 423.9,145.3 434.8,146.4 445.7,147.8 456.5,146.2 467.4,145.8 478.3,144.3 489.1,144.3 500.0,146.2 510.9,143.5 521.7,140.9 532.6,135.0 543.5,133.5 554.3,127.9 565.2,127.9 576.1,125.4 587.0,124.5 597.8,117.2 608.7,111.6 619.6,112.0 630.4,112.5 641.3,112.5 652.2,110.5 663.0,100.5 673.9,96.7 684.8,101.7 695.7,90.6 706.5,90.5 717.4,89.0 728.3,82.9 739.1,76.8 750.0,76.0 760.9,81.4 771.7,78.6 782.6,79.1 793.5,78.8 804.3,68.5 815.2,68.8 826.1,68.4 837.0,66.2 847.8,62.8 858.7,60.3 869.6,57.3 880.4,54.2 891.3,55.1 902.2,53.1 913.0,52.4 923.9,39.3 934.8,31.4 945.7,25.3 956.5,16.0 967.4,16.5 978.3,16.0 989.1,8.0 1000.0,13.3 1000,240"/>
+      <polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"
+        stroke-linecap="round" vector-effect="non-scaling-stroke"
+        points="0.0,229.9 10.9,230.6 21.7,230.9 32.6,232.0 43.5,228.7 54.3,229.0 65.2,227.8 76.1,229.2 87.0,229.7 97.8,225.6 108.7,224.8 119.6,223.6 130.4,218.2 141.3,217.1 152.2,213.2 163.0,214.9 173.9,213.3 184.8,205.6 195.7,201.3 206.5,200.4 217.4,192.9 228.3,187.7 239.1,186.0 250.0,183.6 260.9,180.8 271.7,178.8 282.6,180.4 293.5,176.6 304.3,167.5 315.2,166.8 326.1,165.0 337.0,160.3 347.8,161.2 358.7,158.7 369.6,146.3 380.4,149.3 391.3,147.0 402.2,144.2 413.0,142.4 423.9,145.3 434.8,146.4 445.7,147.8 456.5,146.2 467.4,145.8 478.3,144.3 489.1,144.3 500.0,146.2 510.9,143.5 521.7,140.9 532.6,135.0 543.5,133.5 554.3,127.9 565.2,127.9 576.1,125.4 587.0,124.5 597.8,117.2 608.7,111.6 619.6,112.0 630.4,112.5 641.3,112.5 652.2,110.5 663.0,100.5 673.9,96.7 684.8,101.7 695.7,90.6 706.5,90.5 717.4,89.0 728.3,82.9 739.1,76.8 750.0,76.0 760.9,81.4 771.7,78.6 782.6,79.1 793.5,78.8 804.3,68.5 815.2,68.8 826.1,68.4 837.0,66.2 847.8,62.8 858.7,60.3 869.6,57.3 880.4,54.2 891.3,55.1 902.2,53.1 913.0,52.4 923.9,39.3 934.8,31.4 945.7,25.3 956.5,16.0 967.4,16.5 978.3,16.0 989.1,8.0 1000.0,13.3"/>
+      <circle cx="1000" cy="13.3" r="3.5" fill="var(--accent)"/>
+    </svg>
+    <div class="axis"><span>2020</span><span>2021</span><span>2022</span><span>2023</span>
+      <span>2024</span><span>2025</span><span>2026</span></div>
+    <figcaption>
+      735 closed trades over 6.5 years of 30-minute NIFTY data. Plotted in index points, before
+      conversion to an options position — Section 11 measures what that conversion actually keeps.
+    </figcaption>
+  </figure>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Backtest span</div><div class="v">6.5 yr</div><div class="n">2020 – 2026</div></div>
+    <div class="stat"><div class="k">Trades</div><div class="v">735</div><div class="n">closed positions</div></div>
+    <div class="stat"><div class="k">Profit factor</div><div class="v">2.08</div><div class="n">gross win ÷ loss</div></div>
+    <div class="stat"><div class="k">Sharpe</div><div class="v">2.53</div><div class="n">monthly, annualised</div></div>
+    <div class="stat"><div class="k">Max drawdown</div><div class="v">3.0%</div><div class="n">of peak equity</div></div>
+    <div class="stat"><div class="k">Live engines</div><div class="v">2</div><div class="n">30-min + 5-min</div></div>
+  </div>
+
+  <!-- ==================== 01 ==================== -->
+  <section id="abstract">
+    <h2><span class="no">01</span>Abstract</h2>
+    <p class="lede">
+      This project designs, validates and deploys a fully automated trading system for options on
+      the NIFTY 50 index. The system ingests market data from a broker API, generates directional
+      signals from a volatility-adaptive trend indicator, selects a tradable option contract using
+      a Black–Scholes pricing model, and manages the complete order lifecycle without human
+      intervention.
+    </p>
+    <p>
+      The engineering contribution is a fault-tolerant, stateful service that operates unattended
+      during market hours, including two independent strategy engines that share a single broker
+      account and must therefore reconcile their positions without interfering with one another.
+      The research contribution is a rigorous, cost-honest evaluation methodology: every result is
+      charged the full real-world transaction cost, validated against an independent platform, and
+      subjected to falsification tests designed to reject the hypothesis rather than confirm it.
+    </p>
+    <p>
+      Over 6.5 years of historical data the primary strategy produces a profit factor of 2.08
+      across 735 trades with a maximum drawdown of 3.0% of peak equity. A dedicated study
+      (Section 11) then answers a question that pure backtesting cannot: which option contract
+      should actually be bought to express the signal. Pricing every historical trade against
+      live-recorded market depth, the study demonstrates that at-the-money options retain only 34%
+      of the strategy's theoretical edge against 78% for deep in-the-money contracts — a difference
+      of ₹12 lakh over the test period that no price-only backtest would have revealed. Section 13
+      documents a result that was <em>withdrawn</em> after its underlying assumption failed
+      verification.
+    </p>
+  </section>
+
+  <!-- ==================== 02 ==================== -->
+  <section id="intro">
+    <h2><span class="no">02</span>Problem &amp; Motivation</h2>
+    <p>
+      Discretionary trading suffers from well-documented cognitive failures: inconsistent rule
+      application, loss aversion, and an inability to monitor markets continuously. An algorithmic
+      system replaces judgement with a deterministic specification — but doing so honestly is
+      substantially harder than it first appears, and this is where most retail systems fail.
+    </p>
+    <p>Three problems define the project's scope:</p>
+    <ol>
+      <li>
+        <strong>The validation problem.</strong> A strategy tested carelessly will almost always
+        appear profitable. Look-ahead bias, unrealistic fill assumptions and omitted transaction
+        costs each independently manufacture returns that do not exist. The system must be
+        engineered so these errors are <em>structurally impossible</em>, not merely avoided by care.
+      </li>
+      <li>
+        <strong>The execution problem.</strong> A signal is generated on the index, but the index
+        itself cannot be traded. It must be expressed through a derivative whose price depends on
+        strike, expiry, volatility and time decay. Choosing the wrong contract can destroy a
+        genuine edge — this is invisible to any backtest that stops at the index level.
+      </li>
+      <li>
+        <strong>The reliability problem.</strong> The system handles real capital unattended.
+        Network failures, API rate limits, session expiry, partial fills and process restarts are
+        certainties, not edge cases. The system must fail safe rather than fail open.
+      </li>
+    </ol>
+    <div class="note">
+      <div class="t">Design principle</div>
+      <p>
+        Reaching a well-tested <strong>negative</strong> result cheaply is a successful outcome.
+        Several components of this project were built specifically to disprove hypotheses, and
+        Section 13 documents a headline claim that was retracted after verification. A system that
+        can only confirm is not a measuring instrument.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 03 ==================== -->
+  <section id="arch">
+    <h2><span class="no">03</span>System Architecture</h2>
+    <p>
+      The system is a set of long-running Python services on a cloud virtual machine, supervised by
+      <code>systemd</code>. Each strategy engine is an independent process with its own state file,
+      allowing one to fail or be redeployed without disturbing the other.
+    </p>
+
+    <div class="arch">
+      <div class="tier">
+        <div class="tl">Tier 1 — External interfaces</div>
+        <div class="boxes">
+          <div class="box"><div class="bt">Broker REST API</div><div class="bd">quotes · OHLC · orders</div></div>
+          <div class="box"><div class="bt">WebSocket feed</div><div class="bd">top-5 depth · ticks</div></div>
+          <div class="box"><div class="bt">Notification API</div><div class="bd">alerts · fills · errors</div></div>
+        </div>
+      </div>
+      <div class="flow">▼</div>
+      <div class="tier">
+        <div class="tl">Tier 2 — Data layer</div>
+        <div class="boxes">
+          <div class="box"><div class="bt">Candle builder</div><div class="bd">30-min / 5-min bars</div></div>
+          <div class="box"><div class="bt">Daily history</div><div class="bd">250 d for EMA-50</div></div>
+          <div class="box"><div class="bt">Volatility feed</div><div class="bd">India VIX → σ</div></div>
+          <div class="box"><div class="bt">Quote / depth reader</div><div class="bd">top-5 book at entry</div></div>
+        </div>
+      </div>
+      <div class="flow">▼</div>
+      <div class="tier">
+        <div class="tl">Tier 3 — Strategy engines (independent processes)</div>
+        <div class="boxes">
+          <div class="box hi"><div class="bt">30-minute engine</div><div class="bd">ATR15×1.5 · EMA5</div></div>
+          <div class="box hi"><div class="bt">5-minute engine</div><div class="bd">ATR28×4.5 · EMA100</div></div>
+        </div>
+      </div>
+      <div class="flow">▼</div>
+      <div class="tier">
+        <div class="tl">Tier 4 — Decision &amp; contract selection</div>
+        <div class="boxes">
+          <div class="box"><div class="bt">Signal detector</div><div class="bd">Supertrend flip + EMA</div></div>
+          <div class="box"><div class="bt">Filter chain</div><div class="bd">6 veto rules</div></div>
+          <div class="box"><div class="bt">Option selector</div><div class="bd">BS greeks · δ≈0.95</div></div>
+          <div class="box"><div class="bt">Position sizer</div><div class="bd">1–2 lots</div></div>
+        </div>
+      </div>
+      <div class="flow">▼</div>
+      <div class="tier">
+        <div class="tl">Tier 5 — Execution &amp; persistence</div>
+        <div class="boxes">
+          <div class="box"><div class="bt">Order manager</div><div class="bd">marketable limit</div></div>
+          <div class="box"><div class="bt">Reconciler</div><div class="bd">min(own, broker net)</div></div>
+          <div class="box"><div class="bt">State store</div><div class="bd">JSON, crash-safe</div></div>
+          <div class="box"><div class="bt">systemd unit</div><div class="bd">auto-restart</div></div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      The engine runs a polling loop on a short interval. On each iteration it checks whether a new
+      bar has closed; if so it recomputes indicators, evaluates exit conditions on any open
+      position, then evaluates entry conditions. All position state is written to disk after every
+      transition, so an unexpected restart resumes with an accurate view of the world rather than
+      assuming it is flat.
+    </p>
+  </section>
+
+  <!-- ==================== 04 ==================== -->
+  <section id="data">
+    <h2><span class="no">04</span>Data Pipeline</h2>
+    <p>
+      Two distinct data paths exist: a <strong>request-response</strong> path for candles used in
+      trading decisions, and a <strong>streaming</strong> path used to record order-book depth for
+      the execution-cost measurements in Sections 9.4 and 11.
+    </p>
+
+    <h3>4.1 Bar construction and the closed-bar rule</h3>
+    <p>
+      The single most dangerous bug in any bar-based system is acting on an incomplete candle. A
+      bar that is still forming has a close price that will change, so a signal computed on it is
+      not reproducible and silently embeds future information. The engine filters every fetched
+      frame to bars whose close time has already passed:
+    </p>
+<pre><code><span class="cm"># only bars whose interval has fully elapsed may influence a decision</span>
+now = pd.Timestamp.now(tz=df["date"].dt.tz)
+df  = df[df["date"] + pd.Timedelta(minutes=30) &lt;= now].reset_index(drop=True)</code></pre>
+
+    <h3>4.2 History window sizing</h3>
+    <p>
+      Indicators have warm-up requirements. The daily-EMA-50 trend filter needs at least 50
+      sessions of history before its value is meaningful, so the daily fetch requests 250 calendar
+      days. An early version requested 30 days; the EMA was computed on insufficient data and
+      returned an unstable value. This class of bug is silent — it produces a number, just the
+      wrong one.
+    </p>
+
+    <h3>4.3 Session authentication</h3>
+    <p>
+      The broker API issues an access token valid for a single trading day. Both engines read the
+      same token from a shared environment file; requesting a new token invalidates the existing
+      one, so the recorder was explicitly designed to <em>consume</em> credentials it never mints.
+      Credentials live only in a git-ignored environment file and are never logged.
+    </p>
+  </section>
+
+  <!-- ==================== 05 ==================== -->
+  <section id="signal">
+    <h2><span class="no">05</span>Signal Generation</h2>
+    <p>
+      Direction comes from a <strong>Supertrend</strong> indicator confirmed by an exponential
+      moving average. Supertrend is a volatility-adaptive trailing band: it widens in turbulent
+      markets and tightens in calm ones, which makes a single parameter set viable across regimes.
+    </p>
+
+    <h3>5.1 Average True Range (Wilder smoothing)</h3>
+    <p>
+      True Range captures the full extent of a bar's movement including overnight gaps:
+    </p>
+<pre><code>TR = max( high − low,  |high − prev_close|,  |low − prev_close| )</code></pre>
+    <p>
+      This is smoothed with <strong>Wilder's RMA</strong>, not a simple mean. The distinction
+      matters — using the wrong smoother shifts every band and produces different trades:
+    </p>
+<pre><code><span class="kw">def</span> rma(values, n):
+    r = np.full(len(values), np.nan)
+    r[n-1] = values[:n].mean()                  <span class="cm"># seed with an SMA</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(n, len(values)):
+        r[i] = (r[i-1] * (n-1) + values[i]) / n <span class="cm"># recursive smoothing</span>
+    <span class="kw">return</span> r</code></pre>
+
+    <h3>5.2 The Supertrend band and its state machine</h3>
+    <p>
+      Raw bands are placed at <code>hl2 ± factor × ATR</code>, then made "sticky": a band may only
+      tighten toward price, never loosen, unless price closes through it. Direction is a two-state
+      machine that flips only on a close beyond the opposing band — this hysteresis is what
+      suppresses noise.
+    </p>
+<pre><code>final_upper[i] = upper[i] <span class="kw">if</span> (upper[i] &lt; final_upper[i-1]
+                            <span class="kw">or</span> close[i-1] &gt; final_upper[i-1]) <span class="kw">else</span> final_upper[i-1]
+
+<span class="cm"># direction: 1 = bearish, −1 = bullish</span>
+dir[i] = (−1 <span class="kw">if</span> close[i] &gt; final_upper[i-1] <span class="kw">else</span> 1)  <span class="kw">if</span> dir[i-1] == 1 \
+    <span class="kw">else</span> (1 <span class="kw">if</span> close[i] &lt; final_lower[i-1] <span class="kw">else</span> −1)</code></pre>
+
+    <h3>5.3 Entry condition</h3>
+    <p>
+      A trade requires a direction <em>flip</em> confirmed by price position relative to the EMA.
+      Requiring both conditions filters flips that occur against short-term momentum:
+    </p>
+<pre><code>long_signal  = dir[i] == −1 <span class="kw">and</span> dir[i-1] ==  1 <span class="kw">and</span> close[i] &gt; ema[i]
+short_signal = dir[i] ==  1 <span class="kw">and</span> dir[i-1] == −1 <span class="kw">and</span> close[i] &lt; ema[i]</code></pre>
+  </section>
+
+  <!-- ==================== 06 ==================== -->
+  <section id="strategy">
+    <h2><span class="no">06</span>Strategy Logic &amp; Filters</h2>
+    <p>
+      A raw signal is necessary but not sufficient. Six independent filters may veto entry, each
+      motivated by a specific observed failure mode. All are computed only from information
+      available at the decision instant.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Filter</th><th>Rule</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><b>Time-of-day</b></td><td class="n">skip 11:45, 13:45</td><td>Low-participation midday bars produce unreliable flips</td></tr>
+          <tr><td><b>Gap momentum</b></td><td class="n">no long if gap &lt; −0.75%</td><td>Large gap-downs continue more often than they revert</td></tr>
+          <tr><td><b>Trend regime</b></td><td class="n">no short if close &gt; daily EMA-50</td><td>Counter-trend shorts in a structural uptrend</td></tr>
+          <tr><td><b>Intraday exhaustion</b></td><td class="n">no entry if intraday drop &gt; 1%</td><td>Entering after a sharp move invites mean reversion</td></tr>
+          <tr><td><b>Momentum veto (R2)</b></td><td class="n">no short if 5-day return &gt; 2.5%</td><td>Shorting strong momentum is historically unprofitable</td></tr>
+          <tr><td><b>Pattern veto (P2)</b></td><td class="n">no short after 2 green bars</td><td>Consecutive strength rarely reverses immediately</td></tr>
+        </tbody>
+        <caption>Every filter is a veto. None can create a trade; each can only remove one — this keeps the rule set auditable.</caption>
+      </table>
+    </div>
+
+    <h3>6.1 Conditional position sizing</h3>
+    <p>
+      One rule increases size rather than vetoing. When a long signal coincides with a mild
+      five-day pullback (between −2% and 0%), the position doubles to two lots — buying strength
+      that has paused rather than strength that has run. This subset materially outperforms:
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Position size</th><th>Trades</th><th>Net points</th><th>Win rate</th><th>Profit factor</th><th>Avg / trade</th></tr></thead>
+        <tbody>
+          <tr><td>1 lot (standard)</td><td class="n">550</td><td class="n">12,719</td><td class="n">40.7%</td><td class="n">1.50</td><td class="n">23.1</td></tr>
+          <tr class="hl"><td>2 lots (R1 pullback)</td><td class="n">185</td><td class="n">28,021</td><td class="n">53.0%</td><td class="n">3.27</td><td class="n">151.5</td></tr>
+        </tbody>
+        <caption>25% of trades generate 69% of profit. The sizing rule identifies a genuinely
+        different population, not merely a leveraged version of the same one.</caption>
+      </table>
+    </div>
+
+    <h3>6.2 Exit logic</h3>
+    <p>
+      Three exits compete, all defined on the index rather than the option price so that behaviour
+      is independent of which contract was chosen: a <strong>fixed stop</strong> at 1.2%, a
+      <strong>target</strong> at 3.6% (3:1 reward-to-risk), and a <strong>trailing stop</strong> at
+      0.75% from the peak favourable excursion. A reversing signal also closes the position.
+    </p>
+  </section>
+
+  <!-- ==================== 07 ==================== -->
+  <section id="options">
+    <h2><span class="no">07</span>Option Pricing &amp; Contract Selection</h2>
+    <p>
+      The broker API returns option prices but <em>not</em> greeks, so the system computes them.
+      This is the numerical core of the project.
+    </p>
+
+    <h3>7.1 Black–Scholes and implied volatility</h3>
+    <p>
+      Delta — the sensitivity of option price to a one-point index move — determines how much of
+      the signal's edge the position captures. Because implied volatility is not published, it is
+      recovered from the traded at-the-money price by <strong>bisection</strong>, exploiting the
+      monotonicity of price in volatility:
+    </p>
+<pre><code><span class="kw">def</span> implied_vol(price, S, K, T, kind):
+    lo, hi = 0.01, 4.0
+    <span class="kw">for</span> _ <span class="kw">in</span> range(60):            <span class="cm"># 60 halvings → ~1e-18 precision</span>
+        mid = (lo + hi) / 2
+        <span class="kw">if</span> black_scholes(S, K, T, mid, kind) &gt; price: hi = mid
+        <span class="kw">else</span>:                                        lo = mid
+    <span class="kw">return</span> (lo + hi) / 2</code></pre>
+    <p>
+      Bisection is chosen over Newton–Raphson deliberately: it cannot diverge. Newton converges
+      faster but becomes unstable when vega approaches zero — precisely the deep in-the-money
+      region this system trades in. Guaranteed convergence outweighs speed here.
+    </p>
+
+    <h3>7.2 Strike selection</h3>
+    <p>
+      The selector scores candidate contracts and picks the one whose delta is closest to a 0.95
+      target, breaking ties by tighter spread then higher open interest. A hard floor rejects
+      anything below delta 0.90.
+    </p>
+    <div class="note">
+      <div class="t">Empirical refinement — round strikes</div>
+      <p>
+        Analysis of recorded market depth showed strikes at multiples of 100 carry
+        <strong>2.6× the open interest</strong> of their intermediate neighbours and quote ~8%
+        tighter, with multiples of 500 reaching <strong>3.75×</strong>. The selector was therefore
+        restricted to multiples of 100. Backtesting showed the constraint costs <strong>0.2%</strong>
+        of return — statistically indistinguishable from zero — while eliminating the 48.5% of
+        fills that previously landed on thin strikes. A measurable execution improvement at no
+        meaningful cost.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 08 ==================== -->
+  <section id="exec">
+    <h2><span class="no">08</span>Order Execution &amp; Risk Management</h2>
+
+    <h3>8.1 Marketable limit orders</h3>
+    <p>
+      Market orders guarantee execution but not price — dangerous in a thin book where a single
+      order can sweep several levels. The system instead places a <strong>marketable limit</strong>
+      order: a limit priced just beyond the opposing quote. It fills immediately like a market
+      order under normal conditions, but bounds the worst-case fill. It also survives the case
+      where a strike has not yet traded, which causes some market orders to be rejected outright.
+    </p>
+
+    <h3>8.2 The shared-account concurrency problem</h3>
+    <p>
+      Two engines trade one broker account. The broker reports only a <em>net</em> position per
+      contract, so if both engines hold the same strike, neither can determine its own share from
+      the API alone. This is a classic shared-mutable-state problem in an environment with no
+      transactions and no locks.
+    </p>
+    <p>Two naive approaches both fail:</p>
+    <ul>
+      <li><strong>Trust the broker's net</strong> — engine A closes and sells the entire net quantity, silently liquidating engine B's position.</li>
+      <li><strong>Trust internal state only</strong> — after a partial fill or restart the engine's belief diverges from reality and it may sell quantity it does not own, opening an unintended naked short with unbounded risk.</li>
+    </ul>
+    <p>The implemented solution caps every exit at the minimum of both views:</p>
+<pre><code>sell(symbol, min(position["qty"], broker_net_quantity))</code></pre>
+    <p>
+      This is safe in both directions simultaneously: it can never sell more than the engine owns
+      (no accidental naked short), and never more than the broker shows (no liquidating the other
+      engine's leg). It is deliberately conservative — under disagreement it under-sells, leaving a
+      residual position that is detectable and correctable, rather than over-selling into an
+      unbounded liability.
+    </p>
+
+    <h3>8.3 Failure handling</h3>
+    <div class="grid2">
+      <div class="card"><h4>Session expiry</h4><p>Token errors are caught per-iteration and logged without terminating the process, so the engine recovers when the token is refreshed rather than requiring a restart.</p></div>
+      <div class="card"><h4>Network faults</h4><p>Connection resets are caught at loop level. The loop continues; a transient fault costs one polling cycle, not the session.</p></div>
+      <div class="card"><h4>Process restart</h4><p>Position state persists to disk on every transition. A restarted engine reloads its true position instead of assuming it is flat.</p></div>
+      <div class="card"><h4>Expiry rollover</h4><p>Positions held into expiry day are closed and reopened in the next series automatically after a fixed cutoff time.</p></div>
+    </div>
+  </section>
+
+  <!-- ==================== 09 ==================== -->
+  <section id="backtest">
+    <h2><span class="no">09</span>Backtesting Methodology</h2>
+    <p class="lede">
+      This section is the methodological heart of the project. The backtester is engineered to be
+      pessimistic, because an optimistic backtester is worse than none — it produces confident,
+      unfalsifiable, wrong conclusions.
+    </p>
+
+    <h3>9.1 Realistic gap fills</h3>
+    <p>
+      A naive backtester assumes a stop executes at the stop price. In reality, if the market gaps
+      through the stop overnight, the fill occurs at the open — which may be far worse. The
+      simulator therefore fills at the <em>worse</em> of the two:
+    </p>
+<pre><code><span class="kw">if</span> low[i] &lt;= stop:                       <span class="cm"># long stopped out</span>
+    exit_price = min(stop, open[i])      <span class="cm"># gap-through fills at the open</span></code></pre>
+
+    <h3>9.2 Lagged trailing stop</h3>
+    <p>
+      A subtle look-ahead bug: if the trailing stop is updated using the current bar's high before
+      testing that same bar's low, the simulation uses information it could not have had. The peak
+      is therefore updated only <em>after</em> exit evaluation, so the trail always lags by one bar
+      exactly as it would live.
+    </p>
+
+    <h3>9.3 Complete transaction costs</h3>
+    <p>Every simulated round trip is charged the full regulatory cost stack:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Component</th><th>Rate</th><th>Basis</th></tr></thead>
+        <tbody>
+          <tr><td>Brokerage</td><td class="n">₹40</td><td>flat per round trip</td></tr>
+          <tr><td>Securities transaction tax</td><td class="n">0.100%</td><td>sell-side premium</td></tr>
+          <tr><td>Exchange transaction charge</td><td class="n">0.03503%</td><td>both sides</td></tr>
+          <tr><td>SEBI turnover fee</td><td class="n">0.0001%</td><td>both sides</td></tr>
+          <tr><td>Stamp duty</td><td class="n">0.003%</td><td>buy side</td></tr>
+          <tr><td>GST</td><td class="n">18%</td><td>on brokerage + charges</td></tr>
+          <tr class="hl"><td><b>Bid-ask spread</b></td><td class="n"><b>0.25% of premium</b></td><td><b>measured, not assumed</b></td></tr>
+        </tbody>
+        <caption>The spread term dominates and is the one most often omitted. It was measured
+        directly from live-recorded order-book depth rather than estimated (Section 9.4).</caption>
+      </table>
+    </div>
+
+    <h3>9.4 Measuring the spread rather than assuming it</h3>
+    <p>
+      The spread term dominates the cost stack, so it was measured rather than estimated. Live
+      top-five order-book depth was recorded across six full trading sessions for the option chain
+      around the money, and the resulting samples were grouped by moneyness:
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Moneyness</th><th>Median premium</th><th>Spread (pts)</th><th>Spread % of premium</th></tr></thead>
+        <tbody>
+          <tr><td>Deep out of the money</td><td class="n">2.3</td><td class="n">0.05</td><td class="n neg">2.16%</td></tr>
+          <tr><td>At the money</td><td class="n">33.2</td><td class="n">0.10</td><td class="n">0.31%</td></tr>
+          <tr class="hl"><td>Deep in the money</td><td class="n">180.9</td><td class="n">0.45</td><td class="n">0.25%</td></tr>
+        </tbody>
+        <caption>Counter-intuitive but consistent: relative cost <em>falls</em> as contracts go
+        deeper in the money, even though absolute spread widens. Walking the full five-level ladder
+        gave a mean round-trip cost of 0.226%, confirming the 0.25% model used throughout is
+        accurate and marginally conservative.</caption>
+      </table>
+    </div>
+
+    <h3>9.5 Independent verification</h3>
+    <p>
+      The strategy was independently reimplemented in Pine Script on TradingView. That platform
+      reported 42,964 points against the Python backtester's 40,740 — agreement within ~5%, with
+      the difference attributable to intrabar fill ordering. Two implementations written against
+      the same specification on different engines agreeing to within 5% is meaningful evidence that
+      neither contains a gross logic error.
+    </p>
+
+    <h3>9.6 Falsification tests</h3>
+    <ul>
+      <li><strong>Per-year decomposition</strong> — a strategy profitable only in one regime is a curve fit. This one is positive in all seven calendar years.</li>
+      <li><strong>Parameter sensitivity</strong> — results must degrade smoothly, not collapse, as parameters move. A sharp peak indicates fitting to noise.</li>
+      <li><strong>Cost stress testing</strong> — conclusions were re-derived at 2×, 4× and 8× the measured spread to confirm they do not depend on a favourable cost assumption.</li>
+      <li><strong>Component ablation</strong> — each filter was tested independently to confirm it contributes, rather than being carried by the others.</li>
+    </ul>
+  </section>
+
+  <!-- ==================== 10 ==================== -->
+  <section id="results">
+    <h2><span class="no">10</span>Results</h2>
+
+    <h3>10.1 Headline performance</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Metric</th><th>Value</th><th>Metric</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Total trades</td><td class="n">735</td><td>Profit factor</td><td class="n">2.08</td></tr>
+          <tr><td>Net return</td><td class="n pos">+40,740 pts</td><td>Win rate</td><td class="n">43.8%</td></tr>
+          <tr><td>Average win</td><td class="n pos">+244.0</td><td>Average loss</td><td class="n neg">−91.6</td></tr>
+          <tr><td>Payoff ratio</td><td class="n">2.66</td><td>Expectancy / trade</td><td class="n pos">+55.4</td></tr>
+          <tr><td>Max drawdown</td><td class="n">1,243 pts (3.0%)</td><td>Sharpe (monthly ann.)</td><td class="n">2.53</td></tr>
+          <tr><td>Sortino</td><td class="n">9.70</td><td>Max consecutive losses</td><td class="n">10</td></tr>
+        </tbody>
+        <caption>The system wins less than half its trades. It is profitable because winners are
+        2.66× the size of losers — a structural property of asymmetric exits, not of prediction accuracy.</caption>
+      </table>
+    </div>
+
+    <h3>10.2 Consistency across market regimes</h3>
+    <p>
+      The test window spans a pandemic crash, a liquidity-driven bull market, a rate-tightening
+      bear phase and a range-bound period. Every calendar year is profitable:
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Year</th><th>Trades</th><th>Net points</th><th>Win rate</th><th>Profit factor</th><th>Max DD</th><th>Market character</th></tr></thead>
+        <tbody>
+          <tr><td>2020</td><td class="n">105</td><td class="n pos">+2,334</td><td class="n">42.9%</td><td class="n">1.64</td><td class="n">556</td><td>Crash &amp; recovery</td></tr>
+          <tr><td>2021</td><td class="n">91</td><td class="n pos">+7,526</td><td class="n">50.5%</td><td class="n">3.07</td><td class="n">633</td><td>Strong bull</td></tr>
+          <tr><td>2022</td><td class="n">118</td><td class="n pos">+5,929</td><td class="n">39.8%</td><td class="n">1.89</td><td class="n">1,000</td><td>Bear / tightening</td></tr>
+          <tr><td>2023</td><td class="n">128</td><td class="n pos">+6,007</td><td class="n">43.8%</td><td class="n">2.19</td><td class="n">623</td><td>Range-bound</td></tr>
+          <tr><td>2024</td><td class="n">110</td><td class="n pos">+6,819</td><td class="n">45.5%</td><td class="n">2.01</td><td class="n">966</td><td>Trending</td></tr>
+          <tr><td>2025</td><td class="n">109</td><td class="n pos">+5,046</td><td class="n">39.4%</td><td class="n">1.71</td><td class="n">1,148</td><td>Choppy</td></tr>
+          <tr><td>2026*</td><td class="n">74</td><td class="n pos">+7,079</td><td class="n">47.3%</td><td class="n">2.43</td><td class="n">1,073</td><td>Partial year</td></tr>
+        </tbody>
+        <caption>*2026 to July only. Worst year PF 1.64, best 3.07 — a spread indicating regime
+        sensitivity but not regime dependence.</caption>
+      </table>
+    </div>
+
+    <h3>10.3 Exit-reason decomposition</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Exit type</th><th>Count</th><th>Net points</th><th>Share of profit</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>Target hit</td><td class="n">18</td><td class="n pos">+19,448</td><td class="n">48%</td><td>Rare, very large</td></tr>
+          <tr><td>Signal reversal</td><td class="n">327</td><td class="n pos">+20,267</td><td class="n">50%</td><td>The workhorse</td></tr>
+          <tr><td>Stopped out</td><td class="n">390</td><td class="n">+1,026</td><td class="n">2%</td><td>Roughly break-even</td></tr>
+        </tbody>
+        <caption>Only 2.4% of trades reach the target, yet they contribute nearly half the profit.
+        This is the signature of a positive-skew system — and the reason average-case reasoning
+        about such strategies is misleading.</caption>
+      </table>
+    </div>
+
+    <h3>10.4 Two-engine portfolio</h3>
+    <p>
+      Running both engines together yields 1,501 trades and 87,513 points at profit factor 2.14.
+      Critically, combined maximum drawdown (2,061 points) is <em>less</em> than the sum of
+      individual drawdowns (2,699), because the engines rarely experience their worst periods
+      simultaneously. Their return correlation is 0.60 — meaningful diversification, though
+      analysis showed the two agree on direction 96.9% of the time, so the benefit comes from
+      differences in <em>timing</em> rather than in view.
+    </p>
+  </section>
+
+  <!-- ==================== 11 ==================== -->
+  <section id="study">
+    <h2><span class="no">11</span>Research Study — Which Contract to Buy</h2>
+    <p class="lede">
+      All results above are expressed in index points. But the index cannot be traded directly, and
+      the choice of option contract determines how much of that theoretical edge survives. This
+      study re-prices all 724 historical trades under different contract choices, holding signals,
+      entries and exits fixed so that only the execution vehicle varies.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Contract</th><th>Net ₹</th><th>Profit factor</th><th>Win rate</th><th>Max DD ₹</th><th>Sharpe</th><th>Capital / lot</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td><b>Deep ITM — δ 0.95</b></td><td class="n pos">2,111,784</td><td class="n">1.86</td><td class="n">41.9%</td><td class="n">102,495</td><td class="n">2.11</td><td class="n">₹28,201</td></tr>
+          <tr><td>ITM — δ 0.75</td><td class="n">1,572,755</td><td class="n">1.73</td><td class="n">37.6%</td><td class="n">107,187</td><td class="n">1.77</td><td class="n">₹13,885</td></tr>
+          <tr><td>ATM — δ 0.50</td><td class="n">904,575</td><td class="n">1.53</td><td class="n">31.5%</td><td class="n">123,292</td><td class="n">1.26</td><td class="n">₹6,831</td></tr>
+        </tbody>
+        <caption>Identical trades. The at-the-money contract — the intuitive retail choice — retains
+        57% less profit while suffering a <em>larger</em> drawdown.</caption>
+      </table>
+    </div>
+
+    <h3>11.1 Why the intuitive choice fails</h3>
+    <div class="grid2">
+      <div class="card">
+        <h4>Delta capture</h4>
+        <p>Measured across all trades, the deep-ITM position converts <b>0.96</b> of every rupee of
+        index movement into P&amp;L; the ATM contract converts <b>0.49</b>. The strategy's edge is
+        defined in index points, so halving delta halves the gross return.</p>
+      </div>
+      <div class="card">
+        <h4>Time decay</h4>
+        <p>Mean holding period is 1.6 days with 156 expiry rollovers. Deep-ITM premium is almost
+        entirely intrinsic value and barely decays; ATM premium is <em>entirely</em> time value and
+        bleeds every night the position is held.</p>
+      </div>
+      <div class="card">
+        <h4>Asymmetric loss profile</h4>
+        <p>118 ATM trades lost more than 80% of premium, against 23 for deep ITM. Small index
+        winners become option losers once decay is paid — which is why win rate collapses from
+        41.9% to 31.5%.</p>
+      </div>
+      <div class="card">
+        <h4>Liquidity is not the counterargument</h4>
+        <p>Deep-ITM spreads are wider in absolute points but <em>narrower as a share of premium</em>
+        (0.25% vs 0.31%). Measured on the real book, the intuitive liquidity objection does not hold.</p>
+      </div>
+    </div>
+
+    <p>
+      The conclusion is robust to cost assumptions: even charging deep-ITM contracts
+      <strong>eight times</strong> the measured spread, they still outperform ATM by ₹6.2 lakh. The
+      result also holds in every single calendar year — ATM never wins once in seven years.
+    </p>
+
+    <div class="note">
+      <div class="t">Why this matters methodologically</div>
+      <p>
+        A price-only backtest would rate every one of these variants identically, because the
+        signals are the same. The entire ₹12 lakh difference lives in the execution layer that
+        conventional backtesting ignores. This is the project's central research finding: for
+        derivatives, <em>how</em> a signal is expressed can matter more than the signal itself.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 12 ==================== -->
+  <section id="eng">
+    <h2><span class="no">12</span>Engineering Problems &amp; Solutions</h2>
+
+    <h3>12.1 An inverted timestamp convention</h3>
+    <p>
+      The time-of-day filter compared against a timestamp representing each bar's <em>close</em>,
+      while the specification was written in terms of bar <em>start</em>. The filter was therefore
+      shifted by one full bar: it excluded 09:45 while admitting the intended exclusions
+      incorrectly. The system ran, produced trades and logged no errors — the bug was visible only
+      by reconciling live trades against backtest trades one by one. It is a reminder that in
+      time-series systems the most dangerous defects are semantic, not syntactic.
+    </p>
+
+    <h3>12.2 Percentage buffers on large premiums</h3>
+    <p>
+      The order buffer was specified as a percentage of price. On a low-premium contract this is a
+      few paise; on a deep-ITM contract priced at 434 points it authorises over 2 points of
+      slippage — against a measured requirement of 0.62. The parameter scaled in exactly the wrong
+      direction relative to risk. Identified by comparing the buffer against recorded book depth;
+      the fix is an absolute cap applied to entries.
+    </p>
+
+    <h3>12.3 Deployment safety procedure</h3>
+    <p>
+      Because deployment touches a system holding real capital, each release follows a fixed
+      sequence: verify the engine is flat → back up the current binary with a timestamp →
+      upload alongside, never overwriting → <strong>byte-compile on the target host</strong> and
+      abort if compilation fails → atomically swap → restart → verify service state, restart count
+      and error log → confirm the startup banner reports the expected configuration.
+    </p>
+    <p>
+      Compiling before swapping is the critical step: a syntax error discovered after overwriting
+      leaves an unstartable engine, whereas discovering it beforehand costs nothing. Deployments
+      are scheduled outside market hours whenever possible.
+    </p>
+
+    <h3>12.4 Validating a rewrite against its predecessor</h3>
+    <p>
+      When the decision logic was rewritten, correctness was established by replaying both
+      implementations over 1,408 historical signals and comparing outputs. Agreement was 99.72%;
+      all four disagreements traced to an early-2020 warm-up window where insufficient history
+      existed for a stable EMA — a condition that cannot occur live, since the engine always
+      requests 250 days. Steady-state agreement was therefore 100%. Differential testing of this
+      kind is far stronger evidence than unit tests written by the same author as the code.
+    </p>
+  </section>
+
+  <!-- ==================== 13 ==================== -->
+  <section id="integrity">
+    <h2><span class="no">13</span>Scientific Integrity — A Withdrawn Result</h2>
+    <div class="note warn">
+      <div class="t">Retracted finding</div>
+      <p>
+        An earlier version of the execution study concluded that index <strong>futures</strong>
+        outperformed all option variants, reporting ₹2,301,473 at a Sharpe of 2.22. That result was
+        withdrawn before final submission. It is documented here rather than deleted, because how a
+        result fails is part of the result.
+      </p>
+    </div>
+    <p>
+      No historical futures price series was available, so futures profit and loss had been
+      approximated as index profit and loss minus a flat cost — implicitly assuming futures track
+      the index one-for-one. Testing that assumption against the recorded order-book data showed it
+      to be badly wrong:
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Session</th><th>Index move</th><th>Futures move</th><th>Divergence</th></tr></thead>
+        <tbody>
+          <tr><td>14 July 2026</td><td class="n">−45.10</td><td class="n">−81.60</td><td class="n neg">36.5 pts</td></tr>
+          <tr><td>21 July 2026</td><td class="n">−39.90</td><td class="n">−62.30</td><td class="n neg">22.4 pts</td></tr>
+        </tbody>
+        <caption>Both feeds tick every second and 100% of futures ticks matched an index tick, so
+        the divergence is genuine basis behaviour rather than a timestamp-alignment artifact.</caption>
+      </table>
+    </div>
+    <p>
+      Against an average trade gross of 123 index points, a 22–37 point per-session divergence
+      represents 18–30% of an entire trade, while the flat carry charge modelled only 2–3 points.
+      Both observations moved against a long position, and the strategy is 80% long — so the error
+      was very likely flattering the withdrawn result. Since the strategy trades index-derived
+      signals priced against the same index, the option comparison is unaffected; only the futures
+      row depended on the unverifiable proxy, and only that row was removed.
+    </p>
+    <p>
+      <strong>The methodological lesson:</strong> never rank an instrument for which no price
+      history exists. A flat cost deduction cannot substitute for the dynamics of an unobserved
+      series. The failure was caught by challenging a convenient assumption after the result was
+      already written up — which is precisely when such challenges are least welcome and most
+      necessary.
+    </p>
+  </section>
+
+  <!-- ==================== 14 ==================== -->
+  <section id="stack">
+    <h2><span class="no">14</span>Technology Stack</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Layer</th><th>Technology</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>Language</td><td class="n">Python 3</td><td>Numerical ecosystem; adequate for 30-minute decision cadence</td></tr>
+          <tr><td>Numerics</td><td class="n">NumPy, pandas</td><td>Vectorised time-series and indicator computation</td></tr>
+          <tr><td>Broker interface</td><td class="n">Kite Connect REST + WebSocket</td><td>Official API with market depth access</td></tr>
+          <tr><td>Storage</td><td class="n">JSONL, Parquet</td><td>Append-only raw capture; columnar for analysis</td></tr>
+          <tr><td>Process supervision</td><td class="n">systemd</td><td>Auto-restart, boot persistence, journal integration</td></tr>
+          <tr><td>Host</td><td class="n">Linux cloud VM</td><td>Always-on; independent of local machine availability</td></tr>
+          <tr><td>Cross-validation</td><td class="n">Pine Script / TradingView</td><td>Independent reimplementation for verification</td></tr>
+          <tr><td>Alerting</td><td class="n">Messaging API</td><td>Real-time fill and error notification</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Deliberately conservative choices. No message queue, database server or container
+      orchestration is used, because the workload — a decision every 30 minutes on a single
+      instrument — does not justify the operational surface area. Complexity is itself a failure
+      mode in unattended systems.
+    </p>
+  </section>
+
+  <!-- ==================== 15 ==================== -->
+  <section id="limits">
+    <h2><span class="no">15</span>Limitations</h2>
+    <ol>
+      <li><strong>Synthetic option pricing.</strong> Historical option prices were not available, so the study prices contracts with Black–Scholes using India VIX as the volatility input. This ignores volatility skew. The effect is small for deep-ITM contracts (near-zero vega) but real at the money.</li>
+      <li><strong>Narrow execution-cost sample.</strong> Six recorded sessions is sufficient to characterise the spread ladder but not to capture rare stress conditions, where liquidity behaves very differently.</li>
+      <li><strong>Measured strikes do not cover traded strikes.</strong> Depth was recorded ±350 points around the money, reaching delta 0.877, whereas the engine trades delta 0.95. Deep-ITM liquidity figures are therefore extrapolated rather than directly observed.</li>
+      <li><strong>Single instrument.</strong> All results concern NIFTY options. Generalisation to other underlyings is untested and should not be assumed.</li>
+      <li><strong>Backtest-to-live gap.</strong> Historical simulation cannot fully capture queue position, partial fills or the market impact of the system's own orders.</li>
+      <li><strong>Survivorship of the research process.</strong> Many parameter combinations were examined before settling on the final configuration. Out-of-sample and cross-platform verification mitigate this, but forward performance should be expected to be somewhat below backtested performance.</li>
+    </ol>
+  </section>
+
+  <!-- ==================== 16 ==================== -->
+  <section id="future">
+    <h2><span class="no">16</span>Future Work</h2>
+    <div class="grid2">
+      <div class="card"><h4>Widen depth recording</h4><p>Record depth out to ±800 points so the strikes actually traded are directly measured rather than extrapolated — converting the largest stated limitation into an observation.</p></div>
+      <div class="card"><h4>Absolute slippage cap</h4><p>Replace the percentage order buffer with an absolute point cap on entries, sized from the measured requirement.</p></div>
+      <div class="card"><h4>Learned execution timing</h4><p>Use the recorded book to train a short-horizon model that defers entry by seconds when the book is unusually thin — a natural extension of the microstructure dataset.</p></div>
+      <div class="card"><h4>Live-versus-backtest telemetry</h4><p>Systematically log realised slippage per fill and compare against the model, so the cost assumption is continuously re-validated in production.</p></div>
+      <div class="card"><h4>Portfolio-level risk control</h4><p>A supervisory process enforcing an account-wide daily loss limit and kill switch across both engines, rather than per-engine limits.</p></div>
+      <div class="card"><h4>Volatility surface modelling</h4><p>Replace the single VIX input with a fitted skew surface to improve pricing accuracy for near-the-money contracts.</p></div>
+    </div>
+  </section>
+
+  <!-- ==================== 17 ==================== -->
+  <section id="conclusion">
+    <h2><span class="no">17</span>Conclusion</h2>
+    <p>
+      This project delivers a complete, operational algorithmic trading system rather than a
+      simulation exercise. It ingests live market data, computes derivative pricing models
+      numerically, selects contracts on measured liquidity criteria, manages order lifecycle and
+      failure recovery, and runs unattended on a cloud host — with two independent engines safely
+      sharing a single broker account.
+    </p>
+    <p>
+      The strategy achieves a profit factor of 2.08 across 735 trades and 6.5 years, profitable in
+      every calendar year tested, and cross-validated against an independent platform implementation
+      to within 5%.
+    </p>
+    <p>
+      The more transferable contribution is methodological. The execution study demonstrates that a
+      signal's theoretical edge and its realisable edge are different quantities, separated by a
+      factor of more than two depending on an implementation choice invisible to conventional
+      backtesting. Measuring that gap required capturing live order-book data purely to answer the
+      question empirically rather than by assumption. And Section 13 shows the same evidence being
+      turned against the project's own conclusions — retracting a favourable result once its
+      foundational assumption failed verification.
+    </p>
+    <p>
+      Building a system that produces a profitable backtest is straightforward. Building one whose
+      results can be <em>trusted</em> — engineered so the common self-deceptions are structurally
+      impossible, and willing to reject its own findings — is the substance of the work.
+    </p>
+  </section>
+
+  <footer>
+    <p>
+      <b>Note on reproducibility.</b> All performance figures derive from historical simulation over
+      2020–2026 NIFTY data with complete transaction costs applied. Backtested results do not
+      guarantee future performance. Live deployment operates with capital at risk under the author's
+      supervision.
+    </p>
+    <p>
+      <b>Note on security.</b> No API keys, access tokens, host addresses or account identifiers
+      appear in this document or in any committed source file. Credentials are held solely in
+      environment files excluded from version control and are never written to logs.
+    </p>
+  </footer>
+
+</main>
+</div>
+</body>
+</html>
